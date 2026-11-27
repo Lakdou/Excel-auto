@@ -1,7 +1,0 @@
-.git
-.github
-node_modules
-tests
-samples
-**/__pycache__
-.pytest_cache
