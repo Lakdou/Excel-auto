@@ -149,3 +149,123 @@ test("mode sombre et accueil", async () => {
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "accueil-sombre.png") });
   await context.close();
 });
+
+// ------------------------------------------------------------------------
+// Application générée
+// ------------------------------------------------------------------------
+
+async function generateApp(page) {
+  await upload(page, "suivi_achats_2019.xlsm");
+  await page.waitForSelector("#report-view:not([hidden])");
+  await page.click("[data-action=generate]");
+  await page.waitForURL(/application\.html\?id=/);
+  await page.waitForSelector(".data-table");
+}
+
+test("génération d'une application, saisie et calculs automatiques", async () => {
+  const { context, page, problems } = await newPage({ viewport: { width: 1360, height: 900 } });
+  await generateApp(page);
+  await page.click('a[href="#t/commandes"]');
+  await page.waitForSelector("text=CMD-2019-0001");
+  assert.equal(await page.textContent(".view-head h1"), "Commandes");
+  assert.ok((await page.textContent(".view-head .meta")).startsWith("60 lignes"));
+
+  // Formulaire vide : erreurs par champ, rien n'est créé
+  await page.click("[data-action=add]");
+  await page.click("#row-dialog [type=submit]");
+  await page.waitForSelector("#f-n_commande-err:not(:empty)");
+  assert.equal(await page.textContent("#f-n_commande-err"), "Champ obligatoire");
+
+  await page.fill("#f-n_commande", "CMD-2019-0777");
+  await page.fill("#f-date", "2019-07-01");
+  await page.selectOption("#f-service", "RH");
+  await page.selectOption("#f-code_fournisseur", "F002");
+  await page.fill("#f-montant_ht", "1 000,50");
+  await page.selectOption("#f-statut", "Validée");
+  await page.fill("#f-valide_par", "DAF");
+  await page.click("#row-dialog [type=submit]");
+  await page.waitForSelector("#row-dialog", { state: "hidden" });
+
+  await page.fill(".search", "0777");
+  await page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
+  const cells = await page.locator("tbody tr td").allTextContents();
+  assert.deepEqual(cells.slice(0, 5), ["CMD-2019-0777", "01/07/2019", "RH", "F002", "Bureau Plus"]);
+  assert.deepEqual(cells.slice(6, 8).map((t) => t.replace(/\s/g, " ")), ["200,10", "1 200,60"]);
+  assert.equal(cells[10], "04/07/2019");
+
+  // Modification : la TVA suit
+  await page.click("tbody tr");
+  await page.waitForSelector("#row-dialog[open]");
+  await page.fill("#f-montant_ht", "2000");
+  await page.click("#row-dialog [type=submit]");
+  await page.waitForSelector("#row-dialog", { state: "hidden" });
+  await page.waitForFunction(() => document.querySelectorAll("tbody tr td")[6]?.textContent.replace(/\s/g, "") === "400,00");
+
+  // Paramètre : taux modifié -> toutes les lignes recalculées
+  await page.click('a[href="#parametres"]');
+  await page.waitForSelector(".param input");
+  await page.fill(".param input", "0,1");
+  await page.click(".param [type=submit]");
+  await page.waitForSelector(".param [role=status]:has-text('61 lignes recalculées')");
+
+  // Règles et historique
+  await page.click('a[href="#regles"]');
+  await page.waitForSelector(".rule");
+  assert.equal(await page.locator(".rule .badge.ok").count(), 4);
+  await page.click('a[href="#historique"]');
+  await page.waitForSelector(".history li");
+  const history = await page.locator(".history-head strong").allTextContents();
+  assert.ok(history[0].startsWith("Paramètre modifié"));
+  assert.ok(history.includes("Ajout de « CMD-2019-0777 »"));
+
+  // Export Excel
+  const [xlsx] = await Promise.all([page.waitForEvent("download"), page.click("[data-action=export]")]);
+  assert.ok(xlsx.suggestedFilename().endsWith(".xlsx"));
+
+  // Suppression avec confirmation
+  await page.click('a[href="#t/commandes"]');
+  await page.waitForSelector(".search");
+  await page.fill(".search", "0777");
+  await page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
+  await page.click("tbody tr");
+  await page.click("[data-delete]");
+  assert.equal(await page.textContent("[data-delete]"), "Confirmer la suppression");
+  await page.click("[data-delete]");
+  await page.waitForSelector("#row-dialog", { state: "hidden" });
+  await page.waitForSelector("text=Aucun résultat.");
+
+  if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "application.png") });
+  assert.ok(problems.every((p) => p.includes("422")), problems.join("\n"));
+  await context.close();
+});
+
+test("application : suppression refusée si la ligne est utilisée, affichage mobile", async () => {
+  const { context, page } = await newPage({ ...devices["iPhone 13"] });
+  await generateApp(page);
+  await page.click('a[href="#t/tfournisseurs"]');
+  await page.waitForSelector("text=Dupont Industrie");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  assert.ok(overflow <= 0, `débordement : ${overflow}px`);
+  await page.click("tbody tr");
+  await page.click("[data-delete]");
+  await page.click("[data-delete]");
+  await page.waitForSelector(".form-message:has-text('Impossible de supprimer')");
+  if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "application-mobile.png") });
+  await context.close();
+});
+
+test("application : données malveillantes affichées comme du texte", async () => {
+  const { context, page } = await newPage();
+  await generateApp(page);
+  const id = new URL(page.url()).searchParams.get("id");
+  const res = await fetch(`${BASE}/api/projects/${id}/entities/tfournisseurs/rows`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "<img src=x onerror=window.__pwned=1>", raison_sociale: "<script>window.__pwned=1</script>", pays: "x", delai_jours: 1 }),
+  });
+  assert.equal(res.status, 201);
+  await page.goto(`${BASE}/application.html?id=${id}#t/tfournisseurs`);
+  await page.waitForSelector("text=<script>window.__pwned=1</script>");
+  assert.equal(await page.evaluate(() => window.__pwned), undefined);
+  assert.equal(await page.locator(".app-main img").count(), 0);
+  await context.close();
+});

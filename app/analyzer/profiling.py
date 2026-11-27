@@ -36,6 +36,7 @@ class TableRegion:
     last_col: int
     last_row: int
     source: str  # "excel_table" | "detected"
+    sheet: str = ""  # feuille contenant le tableau (par défaut : le nom du tableau)
 
     @property
     def data_rows(self) -> int:
@@ -304,6 +305,7 @@ def profile_region(grid: Sequence[Sequence[CellData]], region: TableRegion, grid
     return {
         "name": region.name,
         "entity": slugify(region.name, "table"),
+        "sheet": region.sheet or region.name,
         "kind": "view" if derived else "table",
         "source": region.source,
         "range": _range_label(region),

@@ -17,7 +17,46 @@ classeurs) et produit :
   leur équivalent dans une application web ;
 - un **plan de migration** étape par étape.
 
-Les fichiers sont analysés **en mémoire** et ne sont jamais enregistrés sur le serveur.
+Puis, en un clic, Excel Auto **génère l'application web** correspondante (voir plus bas).
+
+Le diagnostic est fait **en mémoire** : le fichier n'est pas conservé. Seules les applications générées
+(à la demande) stockent leurs données sur le serveur.
+
+## Générer l'application
+
+Depuis le rapport de diagnostic, le bouton **« Générer l'application »** transforme le classeur en une
+application web prête à l'emploi :
+
+| Dans Excel | Dans l'application |
+|---|---|
+| Tableaux de données | Tables (SQLite) avec les données importées, recherche, tri, pagination |
+| Saisie dans les cellules | Formulaires générés : types contrôlés, champs obligatoires, unicité |
+| Listes déroulantes (validation de données) | Listes de choix strictes |
+| `RECHERCHEV` vers un autre tableau | Relation : liste des valeurs existantes, suppression protégée |
+| Formules (`=F2*0,2`, `SIERREUR(RECHERCHEV(…))`…) | **Règles de calcul** recalculées à chaque saisie, et en cascade |
+| Valeurs en dur dans les formules, cellules de paramètres, noms définis | **Paramètres** modifiables qui recalculent toutes les lignes |
+| Aucun historique | Historique de chaque modification (avant / après) |
+| — | Export Excel à tout moment |
+
+**Chaque règle est vérifiée** : à la génération, elle est recalculée sur toutes les lignes importées et
+comparée aux résultats enregistrés par Excel. Statuts possibles :
+
+- **Vérifiée** : mêmes résultats qu'Excel sur toutes les lignes ;
+- **Partielle** (≥ 80 %) : la règle est appliquée, les écarts sont listés (souvent des valeurs périmées dans le fichier) ;
+- **Date du jour** : dépend d'`AUJOURDHUI()`, non comparable ;
+- **Non vérifiée** : le fichier ne contenait pas de résultats calculés ;
+- **Non convertie** : construction non prise en charge (calcul cumulatif, lien vers un autre fichier, fonction
+  inconnue…). La colonne devient une saisie classique, **aucune donnée n'est perdue**.
+
+Fonctions prises en charge : `SI`, `SIERREUR`, `SI.NON.DISP`, `ET`, `OU`, `NON`, `EST…`, `SOMME`, `MIN`, `MAX`,
+`MOYENNE`, `NB`, `NBVAL`, `ARRONDI(.SUP/.INF)`, `ENT`, `ABS`, `MOD`, `PUISSANCE`, `SOMME.SI(.ENS)`, `NB.SI(.ENS)`,
+`CONCATENER`, `CONCAT`, `GAUCHE`, `DROITE`, `STXT`, `NBCAR`, `MAJUSCULE`, `MINUSCULE`, `NOMPROPRE`, `SUPPRESPACE`,
+`CNUM`, `AUJOURDHUI`, `ANNEE`, `MOIS`, `JOUR`, `DATE`, `RECHERCHEV` (exacte et approchée), `INDEX`/`EQUIV`,
+`RECHERCHEX`, ainsi que les références structurées (`Tableau[@Colonne]`) et l'arithmétique sur les dates.
+
+Les valeurs importées qui ne respectent pas le type d'une colonne (« n/a » dans une colonne de quantités…) sont
+**conservées** et signalées pour nettoyage. Les rapports calculés (tableaux de synthèse) et les macros VBA ne sont
+pas encore convertis : la génération le signale.
 
 ## Démarrage rapide
 
@@ -62,7 +101,28 @@ Cas gérés avec un message clair : fichier protégé par mot de passe, page HTM
 | `GET` | `/api/health` | État et version |
 | `GET` | `/api/config` | Taille maximale et extensions acceptées |
 
-Documentation interactive : `/docs`. Variable d'environnement : `EXCEL_AUTO_MAX_UPLOAD_MB` (50 par défaut).
+Applications générées :
+
+| Méthode | Route | Description |
+|---|---|---|
+| `POST` | `/api/projects` | Génère une application depuis un fichier (multipart `file`) |
+| `GET` / `DELETE` | `/api/projects[/{id}]` | Liste, description (spec) et comptages, suppression |
+| `GET` / `POST` | `/api/projects/{id}/entities/{table}/rows` | Lignes (`q`, `sort`, `desc`, `offset`, `limit`) / ajout |
+| `GET` / `PATCH` / `DELETE` | `/api/projects/{id}/entities/{table}/rows/{n}` | Lecture, modification partielle, suppression |
+| `GET` / `PUT` | `/api/projects/{id}/parameters[/{nom}]` | Paramètres de calcul |
+| `GET` | `/api/projects/{id}/history` | Historique des modifications |
+| `GET` | `/api/projects/{id}/export.xlsx` | Export Excel |
+
+Les erreurs de saisie renvoient `422` avec un message par champ (`{"detail": …, "errors": {"champ": "message"}}`),
+une suppression bloquée par une référence `409`.
+
+Documentation interactive : `/docs`.
+
+| Variable d'environnement | Rôle | Défaut |
+|---|---|---|
+| `EXCEL_AUTO_MAX_UPLOAD_MB` | Taille maximale des fichiers | `50` |
+| `EXCEL_AUTO_DATA_DIR` | Dossier des applications générées | `./data` |
+| `EXCEL_AUTO_ACCESS_CODE` | Code d'accès exigé pour les applications (recommandé dès que le site est en ligne) | aucun |
 
 ## Architecture
 
@@ -77,7 +137,14 @@ app/
     profiling.py          Détection des tableaux, typage des colonnes, relations, schéma SQL
     vba.py                Extraction (oletools) et interprétation des macros
     scoring.py            Score, points de vigilance, plan de migration
-  static/                 Interface web (HTML/CSS/JS sans dépendance, mode sombre, impression PDF)
+  generator/
+    engine.py             Moteur de formules : analyse syntaxique et évaluation sûre (sans eval)
+    translate.py          Cellules, plages, noms et tableaux Excel -> champs, tables et paramètres
+    cells.py              Lecture complète des cellules (formules partagées comprises)
+    generate.py           Génération : tables, champs, règles, import et vérification contre Excel
+    store.py              Exécution : SQLite, contrôles de saisie, recalcul en cascade, historique, export
+    api.py                API REST des applications
+  static/                 Interface web sans dépendance : diagnostic (index) et application (application.html)
 samples/generate_samples.py   Classeurs de démonstration
 tests/                    Tests unitaires, d'intégration, d'API et de bout en bout (Playwright)
 ```
@@ -98,13 +165,13 @@ Quelques choix techniques :
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest                       # 105 tests : moteur, formats, sécurité, API, CLI
+python -m pytest                       # 196 tests : analyse, moteur de formules, génération, stockage, API
 
 # Tests de bout en bout dans un vrai navigateur
 npm install && npx playwright install chromium
 python samples/generate_samples.py
 uvicorn app.main:app --port 8765 &
-npm run test:e2e                       # parcours complet, exports, mobile, mode sombre, anti-XSS
+npm run test:e2e                       # 9 scénarios : diagnostic, génération, saisie, paramètres, mobile, anti-XSS
 ```
 
 La CI GitHub Actions (`.github/workflows/ci.yml`) exécute les deux suites à chaque push.
@@ -113,7 +180,7 @@ La CI GitHub Actions (`.github/workflows/ci.yml`) exécute les deux suites à ch
 
 ```bash
 docker build -t excel-auto .
-docker run -p 8000:8000 excel-auto
+docker run -p 8000:8000 -v excel-auto-data:/srv/data -e EXCEL_AUTO_ACCESS_CODE=… excel-auto
 ```
 
 L'image tourne sans privilèges (utilisateur dédié) et expose un healthcheck. Elle se déploie telle quelle sur
@@ -127,10 +194,12 @@ Render, Railway, Fly.io, Scaleway ou un serveur interne (pour les clients qui re
   (généré par un programme) ne permet pas de détecter les erreurs de calcul, ce que le rapport signale.
 - L'estimation d'effort est indicative : elle sert à prioriser, pas à chiffrer un devis.
 
+- Pas encore de comptes utilisateurs : le code d'accès protège l'ensemble des applications d'une instance.
+  Ne pas mettre en ligne de données réelles sans le définir.
+
 ## Suite prévue
 
-1. **Générateur d'application** : à partir du rapport, générer la base de données, les formulaires de saisie
-   et les écrans de consultation.
-2. **Moteur de règles** : réécrire les formules en calculs serveur testés automatiquement contre les valeurs
-   du fichier Excel d'origine.
-3. **Plateforme** : comptes, SSO (Azure AD), rôles, journal d'audit, import/export Excel.
+1. **Tableaux de bord** : convertir les rapports calculés (SOMME.SI.ENS par service…) et les graphiques.
+2. **Automatisations** : remplacer les macros VBA (e-mails, exports PDF planifiés, imports de fichiers, alertes).
+3. **Plateforme** : comptes, SSO (Azure AD), rôles (lecture / saisie / validation), import de nouvelles versions
+   du fichier Excel.

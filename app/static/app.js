@@ -16,41 +16,8 @@
     textLength: "Longueur de texte", custom: "Formule personnalisée", any: "Aucune",
   };
 
-  /** Crée un élément DOM. attrs : class, text, title, data-*, aria-*… enfants : nœuds ou chaînes. */
-  function h(tag, attrs, ...children) {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs || {})) {
-      if (v === null || v === undefined || v === false) continue;
-      if (k === "class") el.className = v;
-      else if (k === "text") el.textContent = String(v);
-      else el.setAttribute(k, v === true ? "" : String(v));
-    }
-    for (const child of children.flat()) {
-      if (child === null || child === undefined || child === false) continue;
-      el.append(child instanceof Node ? child : document.createTextNode(String(child)));
-    }
-    return el;
-  }
-
-  const nf = new Intl.NumberFormat("fr-FR");
-  const fmt = (n) => (n === null || n === undefined ? "—" : nf.format(n));
-  const plural = (n, one, many) => `${fmt(n)} ${n > 1 ? many : one}`;
-
-  /** '2019-01-10T00:00:00' -> '10/01/2019' ; '2019-01-10T14:30:00' -> '10/01/2019 14:30'. */
-  function formatValue(v) {
-    if (typeof v === "number") return fmt(v);
-    if (typeof v === "boolean") return v ? "Oui" : "Non";
-    const m = typeof v === "string" && /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?)?$/.exec(v);
-    if (!m) return String(v);
-    const date = `${m[3]}/${m[2]}/${m[1]}`;
-    return m[4] && `${m[4]}:${m[5]}` !== "00:00" ? `${date} ${m[4]}:${m[5]}` : date;
-  }
-
-  function fileSize(bytes) {
-    if (bytes < 1024) return `${bytes} o`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1).replace(".", ",")} Ko`;
-    return `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")} Mo`;
-  }
+  const { h, fmt, plural, formatValue, fileSize, download, api } = window.XA;
+  let lastFile = null;
 
   function show(id) {
     for (const v of views) $("#" + v).hidden = v !== id;
@@ -69,6 +36,7 @@
       showError(`Le fichier fait ${fileSize(file.size)} : la limite est de ${maxUploadMb} Mo.`);
       return;
     }
+    lastFile = file;
     $("#loading-name").textContent = file.name;
     show("loading-view");
     const body = new FormData();
@@ -86,15 +54,6 @@
     } catch (err) {
       showError("Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.");
     }
-  }
-
-  function download(filename, content, type) {
-    const url = URL.createObjectURL(new Blob([content], { type }));
-    const a = h("a", { href: url, download: filename });
-    document.body.append(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   const baseName = (r) => r.file.name.replace(/\.[^.]+$/, "") || "classeur";
@@ -130,7 +89,10 @@
         h("button", { type: "button", class: "btn", "data-action": "json", text: "Exporter (JSON)" }),
         r.sql_schema ? h("button", { type: "button", class: "btn", "data-action": "sql", text: "Schéma SQL" }) : null,
         h("button", { type: "button", class: "btn", "data-action": "print", text: "Imprimer / PDF" }),
-        h("button", { type: "button", class: "btn btn-primary", "data-action": "reset", text: "Nouvelle analyse" }),
+        h("button", { type: "button", class: "btn", "data-action": "reset", text: "Nouvelle analyse" }),
+        r.entities.some((e) => e.kind !== "view")
+          ? h("button", { type: "button", class: "btn btn-primary", "data-action": "generate", text: "Générer l'application" })
+          : null,
       ),
     );
   }
@@ -410,6 +372,50 @@
     );
   }
 
+  // ------------------------------------------------- génération d'application
+  async function generate(btn) {
+    if (!lastFile) return;
+    btn.disabled = true;
+    btn.textContent = "Génération en cours…";
+    const body = new FormData();
+    body.append("file", lastFile, lastFile.name);
+    try {
+      const res = await api("api/projects", { method: "POST", body });
+      window.location.href = `application.html?id=${encodeURIComponent(res.id)}`;
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "Générer l'application";
+      showError(err.message);
+    }
+  }
+
+  async function loadProjects(force = false) {
+    const box = $("#projects");
+    if (!box) return;
+    let data;
+    try {
+      data = await api("api/projects", {}, !force);
+    } catch (err) {
+      if (err.status === 401) {
+        box.replaceChildren(h("div", { class: "card" },
+          h("h2", { text: "Vos applications" }),
+          h("p", { class: "card-sub", text: "Les applications sont protégées par un code d'accès." }),
+          h("button", { type: "button", class: "btn", "data-action": "projects-unlock", text: "Saisir le code d'accès" })));
+        box.hidden = false;
+      }
+      return;
+    }
+    if (!data.items.length) { box.hidden = true; return; }
+    box.replaceChildren(h("div", { class: "card" },
+      h("h2", {}, "Vos applications ", h("span", { class: "count", text: data.items.length })),
+      h("ul", { class: "project-list" }, data.items.map((p) =>
+        h("li", {},
+          h("a", { href: `application.html?id=${encodeURIComponent(p.id)}` }, h("strong", { text: p.title })),
+          h("span", { class: "meta", text: `${plural(p.entities, "table", "tables")} · ${plural(p.rows, "ligne", "lignes")} · depuis ${p.source} · ${formatValue(p.created_at.slice(0, 10))}` }),
+        )))));
+    box.hidden = false;
+  }
+
   // ----------------------------------------------------------- événements
   function init() {
     const input = $("#file-input");
@@ -439,7 +445,9 @@
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
       const action = btn.dataset.action;
-      if (action === "reset") { lastReport = null; show("upload-view"); }
+      if (action === "reset") { lastReport = null; show("upload-view"); loadProjects(); }
+      else if (action === "generate") generate(btn);
+      else if (action === "projects-unlock") loadProjects(true);
       else if (action === "print") window.print();
       else if (action === "json" && lastReport) download(`${baseName(lastReport)}-diagnostic.json`, JSON.stringify(lastReport, null, 2), "application/json");
       else if (action === "sql" && lastReport) download(`${baseName(lastReport)}-schema.sql`, lastReport.sql_schema, "text/plain");
@@ -449,6 +457,7 @@
       maxUploadMb = cfg.max_upload_mb;
       $("#limits").textContent = `${cfg.extensions.join(", ")} · ${cfg.max_upload_mb} Mo max.`;
     }).catch(() => {});
+    loadProjects();
     fetch("api/health").then((r) => r.json()).then((x) => { $("#version").textContent = `v${x.version}`; }).catch(() => {});
   }
 

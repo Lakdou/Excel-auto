@@ -7,19 +7,20 @@ Les fichiers sont analysés en mémoire et ne sont jamais enregistrés sur le se
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import __version__
+from . import __version__, config
 from .analyzer import SUPPORTED_EXTENSIONS, AnalysisError, analyze_bytes
+from .generator import api as generator_api
+from .generator.store import StoreError
 
 logger = logging.getLogger("excel_auto")
 
-MAX_UPLOAD_MB = int(os.environ.get("EXCEL_AUTO_MAX_UPLOAD_MB", "50"))
+MAX_UPLOAD_MB = config.MAX_UPLOAD_MB
 MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -61,8 +62,12 @@ def health() -> dict:
 
 
 @app.get("/api/config")
-def config() -> dict:
-    return {"max_upload_mb": MAX_UPLOAD_MB, "extensions": sorted(SUPPORTED_EXTENSIONS)}
+def get_config() -> dict:
+    return {
+        "max_upload_mb": MAX_UPLOAD_MB,
+        "extensions": sorted(SUPPORTED_EXTENSIONS),
+        "access_code_required": config.ACCESS_CODE is not None,
+    }
 
 
 @app.post("/api/analyze")
@@ -83,6 +88,14 @@ def analyze(file: UploadFile = File(...)) -> JSONResponse:
             detail="L'analyse a échoué de manière inattendue. Le fichier est peut-être endommagé.",
         )
     return JSONResponse(report)
+
+
+app.include_router(generator_api.router)
+
+
+@app.exception_handler(StoreError)
+async def store_error_handler(request: Request, exc: StoreError):
+    return generator_api.store_error_response(exc)
 
 
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

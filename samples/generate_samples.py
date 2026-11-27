@@ -86,8 +86,8 @@ def build_complex(path: Path, rows: int = 60, seed: int = 42) -> Path:
                           dict((f[0], f[1]) for f in FOURNISSEURS)[code])
         cmd.write_number(r, 5, ht, euro)
         # Dette typique : le taux est codé en dur au lieu d'utiliser TauxTVA.
-        cmd.write_formula(r, 6, f"=F{n}*0.2", euro, round(ht * 0.2, 2))
-        cmd.write_formula(r, 7, f"=F{n}+G{n}", euro, round(ht * 1.2, 2))
+        cmd.write_formula(r, 6, f"=F{n}*0.2", euro, ht * 0.2)
+        cmd.write_formula(r, 7, f"=F{n}+G{n}", euro, ht + ht * 0.2)
         cmd.write(r, 8, STATUTS[rnd.randrange(len(STATUTS))])
         # Colonne « fourre-tout » : noms, initiales, dates, nombres…
         valideur = rnd.choice(["M. Martin", "S. Bernard", "DAF", 12, dt.datetime(2019, 3, 1), "ok"])

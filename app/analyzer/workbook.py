@@ -243,7 +243,7 @@ def _analyze_openxml(data: bytes, limitations: list[str]) -> dict:
                 max_r -= int(table.totalsRowCount)
             if table.headerRowCount == 0:
                 continue
-            regions.append(TableRegion(name, min_row, min_col, max_c, max_r, "excel_table"))
+            regions.append(TableRegion(name, min_row, min_col, max_c, max_r, "excel_table", ws.title))
         if not regions and grid:
             region = detect_region(grid, ws.title, max_row)
             if region:

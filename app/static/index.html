@@ -7,6 +7,7 @@
   <meta name="description" content="Diagnostic de classeurs Excel avant leur transformation en application web.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <script src="ui.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -40,10 +41,12 @@
       </label>
 
       <ul class="trust">
-        <li><strong>Confidentiel</strong> — analysé en mémoire, jamais enregistré sur le serveur.</li>
+        <li><strong>Confidentiel</strong> — le diagnostic est fait en mémoire, le fichier n'est pas conservé.</li>
         <li><strong>Formats anciens</strong> — .xls 97-2003, .xlsm avec macros, modèles.</li>
-        <li><strong>Actionnable</strong> — schéma de base de données et plan de migration prêts à l'emploi.</li>
+        <li><strong>Automatique</strong> — en un clic, le classeur devient une application web avec ses calculs.</li>
       </ul>
+
+      <section id="projects" hidden aria-label="Vos applications"></section>
     </section>
 
     <section id="loading-view" class="state" hidden aria-live="polite">
