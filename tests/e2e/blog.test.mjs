@@ -3,9 +3,33 @@
 // Lancement : BASE_URL=http://127.0.0.1:4321 npm run test:e2e
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { chromium, devices } from "playwright";
 
 const BASE = (process.env.BASE_URL || "http://127.0.0.1:4321").replace(/\/$/, "");
+
+// Les valeurs attendues sont calculées à partir des articles réels : les tests restent justes quand la veille
+// automatique publie de nouveaux articles.
+const BLOG_DIR = new URL("../../src/content/blog/", import.meta.url);
+const field = (fm, name) => (fm.match(new RegExp(`^${name}:\\s*(.+)$`, "m")) || [])[1]?.trim().replace(/^"|"$/g, "");
+const POSTS = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md")).map((f) => {
+  const fm = fs.readFileSync(new URL(f, BLOG_DIR), "utf8").split(/^---$/m)[1];
+  return {
+    slug: f.replace(/\.md$/, ""), title: field(fm, "title"), description: field(fm, "description"),
+    date: new Date(field(fm, "pubDate")), category: field(fm, "category"),
+    tags: JSON.parse(field(fm, "tags") || "[]"), featured: field(fm, "featured") === "true", draft: field(fm, "draft") === "true",
+  };
+}).filter((p) => !p.draft).sort((a, b) => b.date - a.date);
+const N = POSTS.length;
+const FEATURED = POSTS.find((p) => p.featured) ?? POSTS[0];
+const OTHERS = POSTS.filter((p) => p !== FEATURED);
+const byCategory = (c) => POSTS.filter((p) => p.category === c);
+const norm = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const matching = (q, cat = "") => POSTS.filter((p) => {
+  const hay = norm(`${p.title} ${p.description} ${p.tags.join(" ")} ${p.category}`);
+  return norm(q).split(/\s+/).filter(Boolean).every((t) => hay.includes(t)) && (!cat || p.category === cat);
+}).length;
+const plural = (n, word) => `${n} ${word}${n > 1 ? "s" : ""}`;
 let browser;
 
 before(async () => { browser = await chromium.launch(); });
@@ -25,26 +49,22 @@ test("accueil magazine : à la une, à lire aussi, derniers articles, rubriques"
   const { context, page, problems } = await open("/");
   assert.equal(await page.title(), "Octet · Tech, dev, IA & gaming");
   assert.equal(await page.locator("h1").count(), 1); // titre principal (masqué visuellement)
-  // À la une : l'article marqué « featured »
-  assert.equal(await page.textContent(".post-card--featured h2"), "Pénurie de RAM : pourquoi la mémoire coûte si cher");
-  // À lire aussi : les plus récents ensuite (même jour : ordre par heure)
-  assert.deepEqual(await page.locator(".side-list .post-card h3").allTextContents(), [
-    "Gaming : ce que la pénurie de mémoire change pour les joueurs",
-    "Monter ou améliorer son PC gamer pendant la pénurie de RAM",
-    "Coder avec une IA : 7 règles pour rester aux commandes",
-  ]);
-  assert.equal(await page.locator(".card-grid .post-card").count(), 3);
-  assert.equal(await page.textContent("section[aria-labelledby=latest-title] .section-head a"), "Tous les articles (7) →");
+  // À la une : l'article marqué « featured » ; ensuite, les plus récents (même jour : ordre par heure)
+  assert.equal(await page.textContent(".post-card--featured h2"), FEATURED.title);
+  assert.deepEqual(await page.locator(".side-list .post-card h3").allTextContents(), OTHERS.slice(0, 3).map((p) => p.title));
+  assert.equal(await page.locator(".card-grid .post-card").count(), Math.min(6, Math.max(0, OTHERS.length - 3)));
+  assert.equal(await page.textContent("section[aria-labelledby=latest-title] .section-head a"), `Tous les articles (${N}) →`);
   // Chaque carte a une illustration et un badge de rubrique
-  assert.equal(await page.locator(".post-card svg.cover").count(), 7);
-  assert.equal(await page.locator(".post-card .badge").count(), 7);
+  const cards = await page.locator(".post-card").count();
+  assert.equal(await page.locator(".post-card svg.cover").count(), cards);
+  assert.equal(await page.locator(".post-card .badge").count(), cards);
   // Tuiles de rubriques avec compteurs
   assert.deepEqual(await page.locator(".cat-tile h3").allTextContents(), ["Gaming", "Hardware", "IA", "Dev"]);
-  assert.equal(await page.textContent(".cat-tile >> nth=3 >> .count"), "3 articles");
+  assert.equal(await page.textContent(".cat-tile >> nth=3 >> .count"), plural(byCategory("dev").length, "article"));
   assert.equal(await page.getAttribute("link[type='application/rss+xml']", "href"), "/rss.xml");
   // L'image et le titre mènent à l'article
   await page.locator(".post-card--featured .post-card__media").click();
-  await page.waitForURL(/\/blog\/penurie-de-ram-pourquoi-la-memoire-coute-si-cher\/$/);
+  await page.waitForURL(new RegExp(`/blog/${FEATURED.slug}/$`));
   assert.deepEqual(problems, []);
   await context.close();
 });
@@ -120,27 +140,23 @@ test("thème : sombre par défaut, bascule en clair et reste mémorisé", async 
 test("articles : recherche instantanée, insensible aux accents", async () => {
   const { context, page } = await open("/blog/");
   const visible = () => page.locator(".post-card:visible").count();
-  assert.equal(await visible(), 7);
-  await page.fill("#search", "git");
-  assert.equal(await visible(), 1);
-  await page.fill("#search", "productivite");  // sans accent -> « Productivité »
-  assert.equal(await visible(), 1);
-  await page.fill("#search", "penurie ram");   // plusieurs mots, sans accents
-  assert.equal(await visible(), 3);
-  await page.fill("#search", "zzzz");
-  assert.equal(await visible(), 0);
+  assert.equal(await visible(), N);
+  for (const q of ["git", "productivite", "penurie ram", "zzzz"]) {  // sans accents, plusieurs mots
+    await page.fill("#search", q);
+    assert.equal(await visible(), matching(q), `recherche « ${q} »`);
+  }
   assert.equal(await page.isVisible("#no-result"), true);
   await page.fill("#search", "");
-  assert.equal(await visible(), 7);
+  assert.equal(await visible(), N);
   // Filtre par rubrique, combinable avec la recherche
   await page.click(".chip[data-filter=hardware]");
   assert.equal(await page.getAttribute(".chip[data-filter=hardware]", "aria-pressed"), "true");
-  assert.equal(await visible(), 2);
+  assert.equal(await visible(), byCategory("hardware").length);
   await page.fill("#search", "guide");
-  assert.equal(await visible(), 1);
+  assert.equal(await visible(), matching("guide", "hardware"));
   await page.click(".chip[data-filter='']");
   await page.fill("#search", "");
-  assert.equal(await visible(), 7);
+  assert.equal(await visible(), N);
   await context.close();
 });
 
@@ -150,9 +166,9 @@ test("rubriques : navigation et page de rubrique", async () => {
   await page.waitForURL(/\/categorie\/gaming\/$/);
   assert.equal(await page.textContent("h1"), "Gaming");
   assert.equal(await page.getAttribute(".nav a[aria-current=page]", "href"), "/categorie/gaming/");
-  assert.deepEqual(await page.locator(".post-card h3").allTextContents(), ["Gaming : ce que la pénurie de mémoire change pour les joueurs"]);
+  assert.deepEqual(await page.locator(".post-card h3").allTextContents(), byCategory("gaming").map((p) => p.title));
   await page.goto(BASE + "/categorie/dev/");
-  assert.equal(await page.locator(".post-card").count(), 3);
+  assert.equal(await page.locator(".post-card").count(), byCategory("dev").length);
   // Le lien de recherche de l'en-tête ouvre la liste avec le champ actif
   await page.click("a[aria-label='Rechercher un article']");
   await page.waitForURL(/\/blog\/#search$/);
@@ -177,7 +193,7 @@ test("page 404 et flux RSS", async () => {
   const rss = await page.request.get(BASE + "/rss.xml");
   assert.equal(rss.status(), 200);
   assert.match(rss.headers()["content-type"], /xml/);
-  assert.equal(((await rss.text()).match(/<item>/g) || []).length, 7);
+  assert.equal(((await rss.text()).match(/<item>/g) || []).length, N);
   await context.close();
 });
 
