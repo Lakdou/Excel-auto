@@ -23,15 +23,17 @@ async function open(path, options = {}) {
 
 test("accueil : derniers articles et thèmes", async () => {
   const { context, page, problems } = await open("/");
-  assert.equal(await page.title(), "Octet · Le blog tech, dev & IA");
+  assert.equal(await page.title(), "Octet · Tech, dev, IA & gaming");
   const titles = await page.locator(".post-card h3").allTextContents();
-  assert.equal(titles.length, 4);
-  assert.equal(titles[0], "Coder avec une IA : 7 règles pour rester aux commandes"); // le plus récent d'abord
+  assert.equal(titles.length, 5); // les 5 plus récents
+  assert.equal(titles[0], "Gaming : ce que la pénurie de mémoire change pour les joueurs"); // le plus récent d'abord
+  assert.equal(titles[1], "Monter ou améliorer son PC gamer pendant la pénurie de RAM"); // même jour : ordre par heure
+  assert.equal(await page.textContent(".section-head a"), "Tout voir (7) →");
   assert.ok((await page.locator(".tag").count()) >= 5);
   assert.equal(await page.getAttribute("link[type='application/rss+xml']", "href"), "/rss.xml");
   // Toute la carte est cliquable
   await page.locator(".post-card").first().click({ position: { x: 20, y: 20 } });
-  await page.waitForURL(/\/blog\/bien-coder-avec-une-ia\/$/);
+  await page.waitForURL(/\/blog\/gaming-ce-que-la-penurie-de-memoire-change\/$/);
   assert.deepEqual(problems, []);
   await context.close();
 });
@@ -84,16 +86,18 @@ test("thème sombre : suit l'appareil, bascule et reste mémorisé", async () =>
 test("articles : recherche instantanée, insensible aux accents", async () => {
   const { context, page } = await open("/blog/");
   const visible = () => page.locator(".post-card:visible").count();
-  assert.equal(await visible(), 4);
+  assert.equal(await visible(), 7);
   await page.fill("#search", "git");
   assert.equal(await visible(), 1);
   await page.fill("#search", "productivite");  // sans accent -> « Productivité »
   assert.equal(await visible(), 1);
+  await page.fill("#search", "penurie ram");   // plusieurs mots, sans accents
+  assert.equal(await visible(), 3);
   await page.fill("#search", "zzzz");
   assert.equal(await visible(), 0);
   assert.equal(await page.isVisible("#no-result"), true);
   await page.fill("#search", "");
-  assert.equal(await visible(), 4);
+  assert.equal(await visible(), 7);
   await context.close();
 });
 
@@ -113,12 +117,12 @@ test("page 404 et flux RSS", async () => {
   const rss = await page.request.get(BASE + "/rss.xml");
   assert.equal(rss.status(), 200);
   assert.match(rss.headers()["content-type"], /xml/);
-  assert.equal(((await rss.text()).match(/<item>/g) || []).length, 4);
+  assert.equal(((await rss.text()).match(/<item>/g) || []).length, 7);
   await context.close();
 });
 
 test("mobile : pas de défilement horizontal, le code défile dans son cadre", async () => {
-  for (const path of ["/", "/blog/automatiser-excel-avec-python/", "/blog/"]) {
+  for (const path of ["/", "/blog/automatiser-excel-avec-python/", "/blog/monter-son-pc-gamer-pendant-la-penurie/", "/blog/"]) {
     const { context, page } = await open(path, { ...devices["iPhone SE"] });
     // Sur mobile, la zone d'affichage s'élargit pour englober le contenu : on compare donc chaque
     // élément à la largeur réelle de l'écran (les blocs de code défilent dans leur propre cadre).
@@ -143,5 +147,17 @@ test("accessibilité : lien d'évitement et navigation au clavier", async () => 
   assert.equal(await page.evaluate(() => getComputedStyle(document.activeElement).left), "16px");
   await page.keyboard.press("Enter");
   assert.ok(page.url().endsWith("#contenu"));
+  await context.close();
+});
+
+test("articles gaming : liens internes entre articles et sources externes", async () => {
+  const { context, page, problems } = await open("/blog/gaming-ce-que-la-penurie-de-memoire-change/");
+  assert.equal(await page.textContent("h1"), "Gaming : ce que la pénurie de mémoire change pour les joueurs");
+  const external = await page.locator(".prose a[href^='http']").count();
+  assert.ok(external >= 4, "sources citées");
+  await page.click(".prose a >> text=guide pour monter son PC pendant la pénurie");
+  await page.waitForURL(/\/blog\/monter-son-pc-gamer-pendant-la-penurie\/$/);
+  assert.equal(await page.textContent("h1"), "Monter ou améliorer son PC gamer pendant la pénurie de RAM");
+  assert.deepEqual(problems, []);
   await context.close();
 });

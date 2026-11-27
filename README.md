@@ -1,4 +1,4 @@
-# Octet — le blog tech, dev & IA
+# Octet — tech, dev, IA & gaming
 
 Un blog rapide et sans serveur, construit avec [Astro](https://astro.build). Chaque article est un simple fichier
 Markdown ; le site est généré en pages statiques et publié gratuitement sur GitHub Pages.

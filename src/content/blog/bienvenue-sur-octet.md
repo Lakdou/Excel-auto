@@ -5,7 +5,7 @@ pubDate: 2026-11-20
 tags: ["Meta", "Astro"]
 ---
 
-Bienvenue ! **Octet** est un blog sur le développement, l'automatisation et l'intelligence artificielle.
+Bienvenue ! **Octet** est un blog sur le développement, l'intelligence artificielle, le matériel PC et le gaming.
 La promesse est simple : des articles **concrets**, avec du code qui fonctionne, que vous pouvez réutiliser
 le jour même.
 
@@ -13,6 +13,7 @@ le jour même.
 
 - **Des tutoriels pas à pas** : Python, JavaScript, Git, automatisation de tâches répétitives.
 - **De l'IA pratique** : comment utiliser les assistants de code sans perdre la main sur son projet.
+- **Du matériel et du gaming** : l'actualité décryptée (prix, pénuries, sorties) et des guides pour monter son PC.
 - **Des astuces** pour gagner quelques minutes chaque jour, qui deviennent des heures à la fin du mois.
 
 ## Comment ce blog est construit
