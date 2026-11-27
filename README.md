@@ -3,9 +3,11 @@
 Un blog rapide et sans serveur, construit avec [Astro](https://astro.build). Chaque article est un simple fichier
 Markdown ; le site est généré en pages statiques et publié gratuitement sur GitHub Pages.
 
-**Ce qui est inclus** : accueil, liste des articles avec recherche instantanée, pages par tag, sommaire qui suit
-la lecture, temps de lecture, code coloré avec bouton « Copier », thème clair / sombre (qui suit l'appareil et
-se mémorise), flux RSS, sitemap, `robots.txt`, aperçus pour les réseaux sociaux, page 404, affichage mobile.
+**Ce qui est inclus** : un style magazine (article à la une, « À lire aussi », grille d'articles, quatre rubriques
+colorées : Gaming, Hardware, IA, Dev), une illustration de couverture générée pour chaque article, recherche
+instantanée et filtres par rubrique, pages par rubrique et par tag, sommaire qui suit la lecture, temps de lecture,
+code coloré avec bouton « Copier », bouton « Copier le lien », articles similaires, thème clair / sombre (qui suit
+l'appareil et se mémorise), flux RSS, sitemap, `robots.txt`, aperçus pour les réseaux sociaux, page 404, mobile.
 
 ## Démarrer
 
@@ -24,7 +26,10 @@ Créez un fichier dans `src/content/blog/`, par exemple `mon-article.md`. Le nom
 title: "Mon article"
 description: "Une ou deux phrases qui donnent envie de lire (20 à 300 caractères)."
 pubDate: 2026-12-01
+category: dev      # gaming, hardware, ia ou dev
 tags: ["Python", "IA"]
+icon: code         # facultatif : gamepad, ram, neural, code, branch, sheet, rocket, tower
+featured: true     # facultatif : à la une sur l'accueil
 draft: true        # facultatif : brouillon non publié
 updatedDate: 2026-12-05   # facultatif
 ---
@@ -37,11 +42,14 @@ print("Le code est coloré automatiquement")
 ````
 
 L'en-tête est vérifié : un champ manquant ou mal écrit bloque la publication avec un message clair.
+L'illustration de couverture est générée automatiquement (couleurs de la rubrique, motif unique pour chaque
+article) : rien à fournir.
 Les images se placent dans `public/` et s'insèrent avec `![description](/mon-image.png)`.
 
 ## Personnaliser
 
-Tout se règle dans [`src/config.ts`](src/config.ts) : nom du blog, accroche, description, auteur, liens.
+Tout se règle dans [`src/config.ts`](src/config.ts) : nom du blog, accroche, description, auteur, liens, et les
+rubriques (nom, description, couleurs, pictogramme).
 Les couleurs sont définies en haut de [`src/styles/global.css`](src/styles/global.css).
 
 ## Publier sur GitHub Pages
@@ -72,8 +80,8 @@ src/
   content.config.ts      Format des articles (vérifié)
   content/blog/          Les articles (Markdown)
   layouts/               Mise en page générale et page d'article
-  components/            En-tête, pied de page, carte d'article, liste de tags
-  pages/                 Accueil, articles, tags, à propos, RSS, robots.txt, 404
+  components/            En-tête, pied de page, cartes d'article, illustrations (Cover), badges, tags
+  pages/                 Accueil, articles, rubriques, tags, à propos, RSS, robots.txt, 404
   styles/global.css      Styles (thèmes clair et sombre)
 scripts/check-site.mjs   Vérification du site généré
 tests/e2e/               Tests navigateur (Playwright)

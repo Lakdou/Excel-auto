@@ -2,6 +2,7 @@
 title: "Coder avec une IA : 7 règles pour rester aux commandes"
 description: "Les assistants de code font gagner un temps fou, à condition de bien les utiliser. Sept règles simples pour obtenir du code fiable."
 pubDate: 2026-11-26
+category: ia
 tags: ["IA", "Productivité"]
 ---
 

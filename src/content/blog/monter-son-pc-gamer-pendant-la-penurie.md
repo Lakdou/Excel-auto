@@ -2,6 +2,8 @@
 title: "Monter ou améliorer son PC gamer pendant la pénurie de RAM"
 description: "Combien de RAM pour jouer, DDR4 ou DDR5, occasion, réglages oubliés : le guide pratique pour avoir un bon PC de jeu sans se ruiner en pleine crise de la mémoire."
 pubDate: 2026-11-26T18:00:00Z
+category: hardware
+icon: tower
 tags: ["Gaming", "Hardware", "Guide"]
 ---
 

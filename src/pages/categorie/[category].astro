@@ -1,0 +1,36 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+import Cover from "../../components/Cover.astro";
+import { CATEGORIES, CATEGORY_KEYS, type CategoryKey } from "../../config";
+import { getPosts, url, type Post } from "../../utils/posts";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return CATEGORY_KEYS.map((key) => ({
+    params: { category: key },
+    props: { key, posts: posts.filter((p) => p.data.category === key) },
+  }));
+}
+
+const { key, posts } = Astro.props as { key: CategoryKey; posts: Post[] };
+const cat = CATEGORIES[key];
+---
+
+<BaseLayout title={cat.label} description={`${cat.label} : ${cat.description}`}>
+  <header class="page-head page-head--cat" style={`--from: ${cat.from}; --to: ${cat.to}`}>
+    <Cover seed={`rubrique-${key}`} category={key} class="cover" />
+    <div class="container">
+      <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a href={url("/")}>Accueil</a><span aria-hidden="true">›</span><span>Rubriques</span>
+      </nav>
+      <h1>{cat.label}</h1>
+      <p>{cat.description} · {posts.length} article{posts.length > 1 ? "s" : ""}</p>
+    </div>
+  </header>
+  <div class="container main-pad">
+    {posts.length
+      ? <div class="card-grid">{posts.map((post) => <PostCard post={post} />)}</div>
+      : <p class="empty">Pas encore d'article dans cette rubrique. Ça arrive bientôt !</p>}
+  </div>
+</BaseLayout>

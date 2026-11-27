@@ -2,6 +2,8 @@
 title: "Bienvenue sur Octet"
 description: "Pourquoi ce blog, ce que vous y trouverez, et comment il est construit : Astro, Markdown et zéro serveur."
 pubDate: 2026-11-20
+category: dev
+icon: rocket
 tags: ["Meta", "Astro"]
 ---
 

@@ -1,0 +1,16 @@
+---
+import { CATEGORIES, type CategoryKey } from "../config";
+import { url } from "../utils/posts";
+
+interface Props {
+  category: CategoryKey;
+  link?: boolean;
+}
+const { category, link = true } = Astro.props;
+const cat = CATEGORIES[category];
+const style = `--cat: ${cat.accent}`;
+---
+
+{link
+  ? <a class="badge" style={style} href={url(`/categorie/${category}/`)}>{cat.label}</a>
+  : <span class="badge" style={style}>{cat.label}</span>}

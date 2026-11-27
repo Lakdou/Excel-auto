@@ -15,12 +15,14 @@ const { tag, posts } = Astro.props as { tag: string; posts: Post[] };
 ---
 
 <BaseLayout title={`Tag : ${tag}`} description={`Tous les articles sur le thème « ${tag} ».`}>
-  <div class="container narrow">
+  <div class="container main-pad">
     <header class="page-head">
-      <a class="back-link" href={url("/tags/")}>← Tous les tags</a>
+      <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a href={url("/")}>Accueil</a><span aria-hidden="true">›</span><a href={url("/tags/")}>Tags</a>
+      </nav>
       <h1>#{tag}</h1>
       <p>{posts.length} article{posts.length > 1 ? "s" : ""}.</p>
     </header>
-    <ul class="post-list">{posts.map((post) => <PostCard post={post} />)}</ul>
+    <div class="card-grid">{posts.map((post) => <PostCard post={post} />)}</div>
   </div>
 </BaseLayout>

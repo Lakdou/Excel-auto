@@ -2,6 +2,8 @@
 title: "Git : les 10 commandes qui sauvent la mise"
 description: "Annuler une erreur, retrouver un fichier supprimé, mettre son travail de côté : les commandes Git à garder sous la main."
 pubDate: 2026-11-22
+category: dev
+icon: branch
 tags: ["Git", "Outils"]
 ---
 

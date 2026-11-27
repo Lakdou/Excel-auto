@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import { SITE } from "../config";
+import { CATEGORIES, SITE, type CategoryKey } from "../config";
 
 export type Post = CollectionEntry<"blog">;
 
@@ -54,4 +54,26 @@ export function tagCounts(posts: Post[]): { tag: string; slug: string; count: nu
   return [...counts.entries()]
     .map(([slug, { tag, count }]) => ({ tag, slug, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "fr"));
+}
+
+/** Article « à la une » : le plus récent marqué featured, sinon le plus récent tout court. */
+export function featuredPost(posts: Post[]): Post | undefined {
+  return posts.find((p) => p.data.featured) ?? posts[0];
+}
+
+/** Articles liés : même rubrique d'abord, puis tags communs, puis les plus récents. */
+export function relatedPosts(post: Post, posts: Post[], count = 3): Post[] {
+  const score = (other: Post) =>
+    (other.data.category === post.data.category ? 10 : 0) +
+    other.data.tags.filter((t) => post.data.tags.includes(t)).length;
+  return posts
+    .filter((p) => p.id !== post.id)
+    .map((p, index) => ({ p, s: score(p), index }))
+    .sort((a, b) => b.s - a.s || a.index - b.index)
+    .slice(0, count)
+    .map(({ p }) => p);
+}
+
+export function category(key: CategoryKey) {
+  return CATEGORIES[key];
 }

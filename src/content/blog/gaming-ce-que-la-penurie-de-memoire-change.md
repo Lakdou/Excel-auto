@@ -2,6 +2,7 @@
 title: "Gaming : ce que la pénurie de mémoire change pour les joueurs"
 description: "Consoles plus chères, ruptures de stock après GTA VI, cartes graphiques hors de prix : comment la crise de la mémoire bouscule le monde du jeu vidéo."
 pubDate: 2026-11-27T10:00:00Z
+category: gaming
 tags: ["Gaming", "Pénurie de RAM", "Consoles"]
 ---
 

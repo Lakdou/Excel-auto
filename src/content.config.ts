@@ -1,6 +1,7 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { CATEGORY_KEYS, ICONS } from "./config";
 
 /**
  * Articles : un fichier Markdown par article dans src/content/blog/.
@@ -13,7 +14,10 @@ const blog = defineCollection({
     description: z.string().min(20).max(300),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
+    category: z.enum(CATEGORY_KEYS),
+    icon: z.enum(ICONS).optional(), // pictogramme de l'illustration (par défaut : celui de la rubrique)
     tags: z.array(z.string().min(1)).default([]),
+    featured: z.boolean().default(false),
     draft: z.boolean().default(false),
   }),
 });

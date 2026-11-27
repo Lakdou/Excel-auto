@@ -6,8 +6,8 @@ import { getPosts, tagCounts } from "../../utils/posts";
 const tags = tagCounts(await getPosts());
 ---
 
-<BaseLayout title="Tags" description="Les articles classés par thème.">
-  <div class="container narrow">
+<BaseLayout title="Tags" description="Tous les thèmes abordés sur le blog, du plus fréquent au plus rare.">
+  <div class="container narrow main-pad">
     <header class="page-head">
       <h1>Tags</h1>
       <p>{tags.length} thème{tags.length > 1 ? "s" : ""} abordé{tags.length > 1 ? "s" : ""}.</p>

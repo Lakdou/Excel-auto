@@ -2,6 +2,8 @@
 title: "Pénurie de RAM : pourquoi la mémoire coûte si cher"
 description: "L'IA engloutit la production de mémoire et les prix de la RAM ont explosé. Ce qui se passe vraiment, les chiffres, et quand espérer une accalmie."
 pubDate: 2026-11-25
+category: hardware
+featured: true
 tags: ["Hardware", "Pénurie de RAM", "IA"]
 ---
 

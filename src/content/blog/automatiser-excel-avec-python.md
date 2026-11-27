@@ -2,6 +2,8 @@
 title: "Automatiser ses fichiers Excel avec Python"
 description: "Lire, nettoyer et consolider des classeurs Excel avec pandas et openpyxl : le guide pratique pour arrêter les copier-coller."
 pubDate: 2026-11-24
+category: dev
+icon: sheet
 tags: ["Python", "Automatisation", "Excel"]
 ---
 

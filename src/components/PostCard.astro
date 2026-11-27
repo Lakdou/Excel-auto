@@ -1,27 +1,33 @@
 ---
+import Cover from "./Cover.astro";
+import CategoryBadge from "./CategoryBadge.astro";
 import type { Post } from "../utils/posts";
-import { formatDate, readingTime, slugify, url } from "../utils/posts";
+import { formatDate, readingTime, url } from "../utils/posts";
 
 interface Props {
   post: Post;
+  variant?: "grid" | "compact" | "featured";
   headingLevel?: "h2" | "h3";
 }
 
-const { post, headingLevel = "h3" } = Astro.props;
+const { post, variant = "grid", headingLevel = "h3" } = Astro.props;
 const Heading = headingLevel;
-const minutes = readingTime(post.body);
+const href = url(`/blog/${post.id}/`);
+const { title, description, pubDate, category, tags } = post.data;
+const search = `${title} ${description} ${tags.join(" ")} ${category}`.toLowerCase();
 ---
 
-<li class="post-card" data-search={`${post.data.title} ${post.data.description} ${post.data.tags.join(" ")}`.toLowerCase()}>
-  <div class="meta">
-    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-    <span class="dot">{minutes} min de lecture</span>
+<article class={`post-card post-card--${variant}`} data-search={search} data-category={category}>
+  <a class="post-card__media" href={href} tabindex="-1" aria-hidden="true">
+    <Cover seed={post.id} category={category} icon={post.data.icon} class="cover" />
+  </a>
+  <div class="post-card__body">
+    <CategoryBadge category={category} />
+    <Heading class="post-card__title"><a href={href}>{title}</a></Heading>
+    {variant !== "compact" && <p class="post-card__excerpt">{description}</p>}
+    <div class="meta">
+      <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+      {variant !== "compact" && <span class="dot">{readingTime(post.body)} min de lecture</span>}
+    </div>
   </div>
-  <Heading><a href={url(`/blog/${post.id}/`)}>{post.data.title}</a></Heading>
-  <p>{post.data.description}</p>
-  {post.data.tags.length > 0 && (
-    <ul class="tags" aria-label="Tags">
-      {post.data.tags.map((tag) => <li><a class="tag" href={url(`/tags/${slugify(tag)}/`)}>{tag}</a></li>)}
-    </ul>
-  )}
-</li>
+</article>
