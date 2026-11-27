@@ -2,6 +2,7 @@
 title: "Gaming : ce que la pénurie de mémoire change pour les joueurs"
 description: "Consoles plus chères, ruptures de stock après GTA VI, cartes graphiques hors de prix : comment la crise de la mémoire bouscule le monde du jeu vidéo."
 pubDate: 2026-11-27T10:00:00Z
+updatedDate: 2026-11-27T23:50:00Z
 category: gaming
 tags: ["Gaming", "Pénurie de RAM", "Consoles"]
 ---
@@ -32,6 +33,13 @@ ces deux composants coûtent deux à trois fois plus cher, la marge des construc
 estimations de Sensor Tower évoquent **1,84 milliard de dollars** de recettes dès le jour de sa sortie
 ([Fox 5 New York](https://www.fox5ny.com/news/gta-vi-pulls-estimated-1-84-billion-release-day-more-than-double-gta-vs-launch-record)),
 plus du double du record de GTA V.
+
+> **Mise à jour** : Take-Two a depuis communiqué son propre chiffre, bien supérieur : **3,79 milliards de dollars**
+> de ventes au détail le premier jour, toutes plateformes confondues, ce qui en fait selon l'éditeur le plus gros
+> lancement de l'histoire du divertissement ([déclaration de Take-Two](https://www.sec.gov/Archives/edgar/data/0000946581/000162828026075217/exhibit9918k.htm),
+> [Game Developer](https://www.gamedeveloper.com/business/grand-theft-auto-vi-is-officially-the-biggest-video-game-launch-ever)).
+> Il s'agit d'une valeur de vente au détail estimée par l'éditeur : la part qui revient réellement à Take-Two est
+> plus faible, les magasins et les constructeurs de consoles prenant leur commission.
 
 Conséquence directe : les consoles s'arrachent. D'après le
 [Washington Post](https://www.washingtonpost.com/world/2026/11/27/gta-vi-release-has-swept-playstation-5-off-shelves-worldwide/),
