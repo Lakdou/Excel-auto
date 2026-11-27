@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TagList from "../../components/TagList.astro";
+import { getPosts, tagCounts } from "../../utils/posts";
+
+const tags = tagCounts(await getPosts());
+---
+
+<BaseLayout title="Tags" description="Les articles classés par thème.">
+  <div class="container narrow">
+    <header class="page-head">
+      <h1>Tags</h1>
+      <p>{tags.length} thème{tags.length > 1 ? "s" : ""} abordé{tags.length > 1 ? "s" : ""}.</p>
+    </header>
+    {tags.length ? <TagList tags={tags} /> : <p class="empty">Aucun tag pour l'instant.</p>}
+  </div>
+</BaseLayout>

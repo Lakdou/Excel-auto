@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import TagList from "../components/TagList.astro";
+import { SITE } from "../config";
+import { getPosts, tagCounts, url } from "../utils/posts";
+
+const posts = await getPosts();
+const recent = posts.slice(0, SITE.postsOnHome);
+const tags = tagCounts(posts);
+---
+
+<BaseLayout>
+  <div class="container">
+    <section class="hero">
+      <h1>Du code, de l'automatisation <span class="gradient">et de l'IA</span>.</h1>
+      <p>{SITE.description}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href={url("/blog/")}>Lire les articles</a>
+        <a class="btn" href={url("/rss.xml")}>S'abonner (RSS)</a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="recent-title">
+      <div class="section-head">
+        <h2 id="recent-title">Derniers articles</h2>
+        {posts.length > recent.length && <a href={url("/blog/")}>Tout voir ({posts.length}) →</a>}
+      </div>
+      {recent.length > 0
+        ? <ul class="post-list">{recent.map((post) => <PostCard post={post} />)}</ul>
+        : <p class="empty">Aucun article pour l'instant.</p>}
+    </section>
+
+    {tags.length > 0 && (
+      <section class="section" aria-labelledby="tags-title">
+        <div class="section-head"><h2 id="tags-title">Explorer par thème</h2></div>
+        <TagList tags={tags} />
+      </section>
+    )}
+  </div>
+</BaseLayout>

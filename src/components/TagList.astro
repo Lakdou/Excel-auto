@@ -1,0 +1,14 @@
+---
+import { url } from "../utils/posts";
+
+interface Props {
+  tags: { tag: string; slug: string; count: number }[];
+}
+const { tags } = Astro.props;
+---
+
+<ul class="tags">
+  {tags.map(({ tag, slug, count }) => (
+    <li><a class="tag" href={url(`/tags/${slug}/`)}>{tag}<span class="count">{count}</span></a></li>
+  ))}
+</ul>

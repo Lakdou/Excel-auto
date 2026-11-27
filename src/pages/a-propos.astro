@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE } from "../config";
+import { url } from "../utils/posts";
+---
+
+<BaseLayout title="À propos" description={`Qui écrit ${SITE.title}, et pourquoi.`}>
+  <div class="container narrow">
+    <header class="page-head">
+      <h1>À propos</h1>
+    </header>
+    <div class="prose">
+      <p>
+        <strong>{SITE.title}</strong> est un blog sur le développement, l'automatisation et l'intelligence
+        artificielle. L'idée est simple : des articles concrets, avec du code qui marche, que l'on peut
+        réutiliser le jour même.
+      </p>
+      <h2>Ce que vous trouverez ici</h2>
+      <ul>
+        <li>des tutoriels pas à pas (Python, JavaScript, Git, automatisation) ;</li>
+        <li>des retours d'expérience sur les outils d'IA pour coder plus vite ;</li>
+        <li>des astuces pour gagner du temps au quotidien.</li>
+      </ul>
+      <h2>Suivre le blog</h2>
+      <p>
+        Le plus simple est de s'abonner au <a href={url("/rss.xml")}>flux RSS</a> avec votre lecteur préféré.
+        Le code du blog est sur <a href={SITE.links.github}>GitHub</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

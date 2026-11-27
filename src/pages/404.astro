@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { url } from "../utils/posts";
+---
+
+<BaseLayout title="Page introuvable" description="Cette page n'existe pas ou a été déplacée.">
+  <div class="container not-found">
+    <p class="code" aria-hidden="true">404</p>
+    <h1>Page introuvable</h1>
+    <p>Cette page n'existe pas ou a été déplacée.</p>
+    <a class="btn btn-primary" href={url("/")}>Retour à l'accueil</a>
+  </div>
+</BaseLayout>

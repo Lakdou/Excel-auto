@@ -1,0 +1,117 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../config";
+import { url } from "../utils/posts";
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: "website" | "article";
+  publishedTime?: Date;
+  tags?: string[];
+}
+
+const { title, description = SITE.description, type = "website", publishedTime, tags = [] } = Astro.props;
+const fullTitle = title ? `${title} — ${SITE.title}` : `${SITE.title} · ${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.title} — flux RSS`} href={url("/rss.xml")} />
+    <link rel="sitemap" href={url("/sitemap-index.xml")} />
+    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:title" content={title ?? SITE.title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="fr_FR" />
+    {publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+    {tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Thème appliqué avant l'affichage pour éviter un flash de couleurs. -->
+    <script is:inline>
+      (() => {
+        let theme = null;
+        try { theme = localStorage.getItem("theme"); } catch {}
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+    <Header />
+    <main id="contenu">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // Bascule clair / sombre, mémorisée dans le navigateur.
+      document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((button) => {
+        const sync = () => {
+          const dark = document.documentElement.dataset.theme === "dark";
+          button.setAttribute("aria-pressed", String(dark));
+          button.setAttribute("aria-label", dark ? "Passer au thème clair" : "Passer au thème sombre");
+        };
+        sync();
+        button.addEventListener("click", () => {
+          const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+          document.documentElement.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch { /* navigation privée */ }
+          sync();
+        });
+      });
+
+      // Blocs de code : langage affiché et bouton « Copier ».
+      document.querySelectorAll<HTMLPreElement>("pre.astro-code").forEach((pre) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "code-block";
+        pre.replaceWith(wrapper);
+        wrapper.append(pre);
+        const lang = pre.dataset.language;
+        if (lang && lang !== "plaintext" && lang !== "text") {
+          const label = document.createElement("span");
+          label.className = "code-lang";
+          label.textContent = lang;
+          wrapper.prepend(label);
+        }
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "copy-btn";
+        button.textContent = "Copier";
+        button.setAttribute("aria-label", "Copier le code");
+        button.addEventListener("click", async () => {
+          const text = pre.querySelector("code")?.innerText ?? pre.innerText;
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = "Copié !";
+          } catch {
+            button.textContent = "Échec";
+          }
+          button.classList.add("copied");
+          setTimeout(() => { button.textContent = "Copier"; button.classList.remove("copied"); }, 1800);
+        });
+        wrapper.append(button);
+      });
+    </script>
+  </body>
+</html>

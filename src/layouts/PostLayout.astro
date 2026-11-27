@@ -1,0 +1,80 @@
+---
+import type { MarkdownHeading } from "astro";
+import BaseLayout from "./BaseLayout.astro";
+import type { Post } from "../utils/posts";
+import { formatDate, readingTime, slugify, url } from "../utils/posts";
+
+interface Props {
+  post: Post;
+  headings: MarkdownHeading[];
+  previous?: Post;
+  next?: Post;
+}
+
+const { post, headings, previous, next } = Astro.props;
+const { title, description, pubDate, updatedDate, tags } = post.data;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<BaseLayout title={title} description={description} type="article" publishedTime={pubDate} tags={tags}>
+  <div class="container">
+    <div class="post-layout">
+      <article>
+        <header class="post-header">
+          <a class="back-link" href={url("/blog/")}>← Tous les articles</a>
+          <h1>{title}</h1>
+          <p class="lead">{description}</p>
+          <div class="meta">
+            <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+            {updatedDate && <span class="dot">Mis à jour le <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time></span>}
+            <span class="dot">{readingTime(post.body)} min de lecture</span>
+          </div>
+          {tags.length > 0 && (
+            <ul class="tags" aria-label="Tags">
+              {tags.map((tag) => <li><a class="tag" href={url(`/tags/${slugify(tag)}/`)}>{tag}</a></li>)}
+            </ul>
+          )}
+        </header>
+
+        <div class="prose">
+          <slot />
+        </div>
+
+        <footer class="post-footer">
+          <a class="back-link" href={url("/blog/")}>← Tous les articles</a>
+          {(previous || next) && (
+            <nav class="post-nav" aria-label="Articles voisins">
+              {previous && <a class="prev" href={url(`/blog/${previous.id}/`)}><span>← Plus récent</span>{previous.data.title}</a>}
+              {next && <a class="next" href={url(`/blog/${next.id}/`)}><span>Plus ancien →</span>{next.data.title}</a>}
+            </nav>
+          )}
+        </footer>
+      </article>
+
+      {toc.length > 1 && (
+        <aside class="toc" aria-labelledby="toc-title">
+          <h2 id="toc-title">Sommaire</h2>
+          <ol>
+            {toc.map((h) => <li class={`depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          </ol>
+        </aside>
+      )}
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Surligne dans le sommaire la section en cours de lecture.
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>(".toc a").forEach((a) => links.set(decodeURIComponent(a.hash.slice(1)), a));
+  if (links.size && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        links.forEach((a) => a.classList.remove("active"));
+        links.get(entry.target.id)?.classList.add("active");
+      }
+    }, { rootMargin: "-80px 0px -70% 0px" });
+    links.forEach((_, id) => { const el = document.getElementById(id); if (el) observer.observe(el); });
+  }
+</script>

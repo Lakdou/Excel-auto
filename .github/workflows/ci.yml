@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  ASTRO_TELEMETRY_DISABLED: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Types, build et vérification du site
+        run: npm test
+
+      - name: Vérification avec le chemin de base de GitHub Pages
+        run: npm run build && npm run check:links
+        env:
+          SITE_URL: https://exemple.github.io
+          BASE_PATH: /depot
+
+      - name: Navigateur de test
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests de bout en bout
+        run: |
+          npm run build
+          npx astro preview --port 4321 --host 127.0.0.1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4321/ > /dev/null && break; sleep 1; done
+          npm run test:e2e

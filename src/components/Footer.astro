@@ -1,0 +1,17 @@
+---
+import { SITE } from "../config";
+import { url } from "../utils/posts";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© {year} {SITE.author} · {SITE.title}</span>
+    <span class="footer-links">
+      <a href={url("/rss.xml")}>Flux RSS</a>
+      <a href={SITE.links.github} rel="me noopener">GitHub</a>
+      <a href={url("/a-propos/")}>À propos</a>
+    </span>
+  </div>
+</footer>

@@ -1,0 +1,28 @@
+{
+  "name": "octet-blog",
+  "type": "module",
+  "private": true,
+  "description": "Octet — un blog tech, dev & IA construit avec Astro",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:links": "node scripts/check-site.mjs",
+    "test": "astro check && astro build && node scripts/check-site.mjs",
+    "test:e2e": "node --test tests/e2e/blog.test.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.5",
+    "astro": "7.4.11"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  }
+}
