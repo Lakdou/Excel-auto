@@ -1,10 +1,10 @@
 name: Déploiement GitHub Pages
 
-# Publie le blog à chaque push sur main, ou à la demande depuis l'onglet « Actions ».
+# Publie le blog à chaque push sur la branche du blog (ou main), ou à la demande depuis l'onglet « Actions ».
 # Prérequis (une seule fois) : Settings › Pages › Source : « GitHub Actions ».
 on:
   push:
-    branches: [main]
+    branches: [main, ccr-25a0c552-7bics4]
   workflow_dispatch:
 
 permissions:

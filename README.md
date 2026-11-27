@@ -56,8 +56,8 @@ Les couleurs sont définies en haut de [`src/styles/global.css`](src/styles/glob
 ## Publier sur GitHub Pages
 
 1. Sur GitHub : **Settings › Pages › Source : GitHub Actions** (une seule fois).
-2. Chaque push sur la branche `main` publie le site automatiquement. On peut aussi lancer la publication à la
-   main : onglet **Actions › Déploiement GitHub Pages › Run workflow**.
+2. Chaque push sur la branche du blog (`ccr-25a0c552-7bics4`) ou sur `main` publie le site automatiquement. On
+   peut aussi lancer la publication à la main : onglet **Actions › Déploiement GitHub Pages › Run workflow**.
 
 L'adresse du site (`https://<utilisateur>.github.io/<dépôt>/`) est détectée automatiquement.
 
