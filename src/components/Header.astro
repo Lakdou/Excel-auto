@@ -16,8 +16,8 @@ const isCurrent = (match: string) => (match === "/" ? path === "/" : path.starts
     <nav class="nav" aria-label="Rubriques">
       <a href={url("/")} aria-current={isCurrent("/") ? "page" : undefined}>À la une</a>
       {CATEGORY_KEYS.map((key) => (
-        <a href={url(`/categorie/${key}/`)} aria-current={isCurrent(`/categorie/${key}`) ? "page" : undefined}>
-          <span class="dot-cat" style={`--cat: ${CATEGORIES[key].accent}`} aria-hidden="true"></span>{CATEGORIES[key].label}
+        <a href={url(`/categorie/${key}/`)} style={`--cat: ${CATEGORIES[key].accent}`} aria-current={isCurrent(`/categorie/${key}`) ? "page" : undefined}>
+          <span class="dot-cat" aria-hidden="true"></span>{CATEGORIES[key].label}
         </a>
       ))}
       <a href={url("/blog/")} aria-current={isCurrent("/blog") ? "page" : undefined}>Tous les articles</a>

@@ -102,8 +102,8 @@ test("article : sommaire, code coloré et bouton Copier", async () => {
   await context.close();
 });
 
-test("thème sombre : suit l'appareil, bascule et reste mémorisé", async () => {
-  const { context, page } = await open("/blog/git-commandes-essentielles/", { colorScheme: "dark" });
+test("thème : sombre par défaut, bascule en clair et reste mémorisé", async () => {
+  const { context, page } = await open("/blog/git-commandes-essentielles/", { colorScheme: "light" });
   const theme = () => page.evaluate(() => document.documentElement.dataset.theme);
   const codeColor = () => page.locator("pre.astro-code").first().evaluate((el) => getComputedStyle(el).backgroundColor);
   assert.equal(await theme(), "dark");
@@ -188,10 +188,12 @@ test("mobile : pas de défilement horizontal, le code défile dans son cadre", a
     // élément à la largeur réelle de l'écran (les blocs de code défilent dans leur propre cadre).
     const result = await page.evaluate(() => {
       const width = window.screen.width;
-      // Ignore ce qui est dans une zone qui défile d'elle-même (code, tableaux, menu des rubriques).
+      // Ignore ce qui est dans une zone qui défile d'elle-même (code, tableaux, menu des rubriques) ou qui est
+      // rogné par son cadre (formes intérieures des illustrations) : rien de tout cela ne fait déborder la page.
       const inScroller = (el) => {
+        if (el.closest("svg")) return true;
         for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-          if (["auto", "scroll"].includes(getComputedStyle(p).overflowX)) return true;
+          if (["auto", "scroll", "hidden", "clip"].includes(getComputedStyle(p).overflowX)) return true;
         }
         return false;
       };

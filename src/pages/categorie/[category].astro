@@ -18,7 +18,7 @@ const cat = CATEGORIES[key];
 ---
 
 <BaseLayout title={cat.label} description={`${cat.label} : ${cat.description}`}>
-  <header class="page-head page-head--cat" style={`--from: ${cat.from}; --to: ${cat.to}`}>
+  <header class="page-head page-head--cat" style={`--cat: ${cat.accent}`}>
     <Cover seed={`rubrique-${key}`} category={key} class="cover" />
     <div class="container">
       <nav class="crumbs" aria-label="Fil d'Ariane">

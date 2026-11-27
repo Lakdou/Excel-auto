@@ -3,6 +3,7 @@ import Cover from "./Cover.astro";
 import CategoryBadge from "./CategoryBadge.astro";
 import type { Post } from "../utils/posts";
 import { formatDate, readingTime, url } from "../utils/posts";
+import { CATEGORIES } from "../config";
 
 interface Props {
   post: Post;
@@ -17,7 +18,7 @@ const { title, description, pubDate, category, tags } = post.data;
 const search = `${title} ${description} ${tags.join(" ")} ${category}`.toLowerCase();
 ---
 
-<article class={`post-card post-card--${variant}`} data-search={search} data-category={category}>
+<article class={`post-card post-card--${variant}`} style={`--cat: ${CATEGORIES[category].accent}`} data-search={search} data-category={category}>
   <a class="post-card__media" href={href} tabindex="-1" aria-hidden="true">
     <Cover seed={post.id} category={category} icon={post.data.icon} class="cover" />
   </a>

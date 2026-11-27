@@ -30,8 +30,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.title} — flux RSS`} href={url("/rss.xml")} />
     <link rel="sitemap" href={url("/sitemap-index.xml")} />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0a0c11" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#08080a" />
     <meta name="generator" content={Astro.generator} />
 
     <meta property="og:type" content={type} />
@@ -49,9 +48,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       (() => {
         let theme = null;
         try { theme = localStorage.getItem("theme"); } catch {}
-        if (theme !== "light" && theme !== "dark") {
-          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
+        if (theme !== "light" && theme !== "dark") theme = "dark"; // sombre par défaut : identité du site
         document.documentElement.dataset.theme = theme;
       })();
     </script>

@@ -3,11 +3,12 @@
 Un blog rapide et sans serveur, construit avec [Astro](https://astro.build). Chaque article est un simple fichier
 Markdown ; le site est généré en pages statiques et publié gratuitement sur GitHub Pages.
 
-**Ce qui est inclus** : un style magazine (article à la une, « À lire aussi », grille d'articles, quatre rubriques
-colorées : Gaming, Hardware, IA, Dev), une illustration de couverture générée pour chaque article, recherche
+**Ce qui est inclus** : un style magazine esport, sombre par défaut (noir et rouge, formes anguleuses, titres en
+capitales ; article à la une, « À lire aussi », grille d'articles, quatre rubriques : Gaming, Hardware, IA, Dev),
+une illustration de couverture générée pour chaque article (effet « glitch », couleur de la rubrique), recherche
 instantanée et filtres par rubrique, pages par rubrique et par tag, sommaire qui suit la lecture, temps de lecture,
-code coloré avec bouton « Copier », bouton « Copier le lien », articles similaires, thème clair / sombre (qui suit
-l'appareil et se mémorise), flux RSS, sitemap, `robots.txt`, aperçus pour les réseaux sociaux, page 404, mobile.
+code coloré avec bouton « Copier », bouton « Copier le lien », articles similaires, thème clair disponible (choix
+mémorisé), flux RSS, sitemap, `robots.txt`, aperçus pour les réseaux sociaux, page 404, mobile.
 
 ## Démarrer
 

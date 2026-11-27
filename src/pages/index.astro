@@ -47,7 +47,7 @@ const counts = Object.fromEntries(CATEGORY_KEYS.map((k) => [k, posts.filter((p) 
         {CATEGORY_KEYS.map((key) => {
           const cat = CATEGORIES[key];
           return (
-            <a class="cat-tile" href={url(`/categorie/${key}/`)} style={`--from: ${cat.from}; --to: ${cat.to}`}>
+            <a class="cat-tile" href={url(`/categorie/${key}/`)} style={`--cat: ${cat.accent}`}>
               <span class="count">{counts[key]} article{counts[key] > 1 ? "s" : ""}</span>
               <h3>{cat.label}</h3>
               <p>{cat.description}</p>

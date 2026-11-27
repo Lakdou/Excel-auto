@@ -14,39 +14,31 @@ export const SITE = {
 
 /**
  * Rubriques du magazine. Chaque article en choisit une (champ « category » de l'en-tête).
- * `from` / `to` : dégradé des illustrations ; `accent` : couleur des badges et titres de rubrique.
+ * `accent` : couleur de la rubrique (badges, illustrations, filtres).
  */
 export const CATEGORIES = {
   gaming: {
     label: "Gaming",
     description: "Consoles, sorties, prix et coulisses du jeu vidéo.",
-    from: "#6d28d9",
-    to: "#db2777",
-    accent: "#c026d3",
+    accent: "#ff2a3d",
     icon: "gamepad",
   },
   hardware: {
     label: "Hardware",
     description: "Composants, pénuries, guides d'achat et montage de PC.",
-    from: "#0369a1",
-    to: "#06b6d4",
-    accent: "#0891b2",
+    accent: "#ff8a00",
     icon: "ram",
   },
   ia: {
     label: "IA",
     description: "Intelligence artificielle appliquée : outils, usages, limites.",
-    from: "#047857",
-    to: "#84cc16",
-    accent: "#059669",
+    accent: "#00d4ff",
     icon: "neural",
   },
   dev: {
     label: "Dev",
     description: "Code, automatisation et outils pour développeurs.",
-    from: "#c2410c",
-    to: "#f59e0b",
-    accent: "#ea580c",
+    accent: "#b8ff2a",
     icon: "code",
   },
 } as const;

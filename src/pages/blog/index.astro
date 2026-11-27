@@ -17,8 +17,8 @@ const posts = await getPosts();
         <input id="search" class="search" type="search" placeholder="Rechercher (titre, sujet, tag)…" autocomplete="off" />
         <button type="button" class="chip" data-filter="" aria-pressed="true">Tout</button>
         {CATEGORY_KEYS.map((key) => (
-          <button type="button" class="chip" data-filter={key} aria-pressed="false">
-            <span class="dot-cat" style={`--cat: ${CATEGORIES[key].accent}`} aria-hidden="true"></span>{CATEGORIES[key].label}
+          <button type="button" class="chip" data-filter={key} aria-pressed="false" style={`--cat: ${CATEGORIES[key].accent}`}>
+            <span class="dot-cat" aria-hidden="true"></span>{CATEGORIES[key].label}
           </button>
         ))}
       </div>
