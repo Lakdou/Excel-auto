@@ -182,7 +182,7 @@ test("tags : liste et page d'un tag", async () => {
   await page.click(".tag >> text=Python");
   await page.waitForURL(/\/tags\/python\/$/);
   assert.equal(await page.textContent("h1"), "#Python");
-  assert.deepEqual(await page.locator(".post-card h3").allTextContents(), ["Automatiser ses fichiers Excel avec Python"]);
+  assert.deepEqual(await page.locator(".post-card h3").allTextContents(), POSTS.filter((p) => p.tags.includes("Python")).map((p) => p.title));
   await context.close();
 });
 
