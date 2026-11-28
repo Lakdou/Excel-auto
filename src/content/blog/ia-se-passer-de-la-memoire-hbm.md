@@ -2,6 +2,7 @@
 title: "Face à la pénurie de HBM, l'IA cherche à se passer de la mémoire la plus chère"
 description: "Nvidia et Kioxia transforment 144 SSD en mémoire pour GPU, Intel mise sur de la LPDDR5X : l'industrie teste des alternatives à la HBM. Ce que ça peut changer, et ses limites."
 pubDate: 2026-11-28T00:50:00Z
+updatedDate: 2026-11-28T03:50:00Z
 category: ia
 icon: ram
 tags: ["IA", "Pénurie de RAM", "HBM"]
@@ -59,16 +60,17 @@ faire tourner des modèles, beaucoup de mémoire à un coût raisonnable vaut mi
 
 Pas forcément, et pas tout de suite. Ces deux approches pourraient, à terme, réduire un peu la pression sur la
 HBM. Mais elles déplacent aussi la demande vers d'autres mémoires, fabriquées par la même industrie : la
-**mémoire flash des SSD**, dont TrendForce prévoyait déjà une hausse des prix contrats de 15 à 20 % au
-quatrième trimestre ([TrendForce](https://www.trendforce.com/presscenter/news/20260930-13258.html)), et la
+**mémoire flash des SSD**, dont TrendForce prévoyait fin septembre une hausse des prix contrats de 15 à 20 % au
+quatrième trimestre ([TrendForce](https://www.trendforce.com/presscenter/news/20260930-13258.html)), prévision
+revue depuis à la baisse (voir [notre point sur les prix des SSD et de la RAM](/blog/memoire-ssd-baisse-2027-ram-reste-chere/)), et la
 **LPDDR5X**, également utilisée dans les téléphones et les ordinateurs portables.
 
 ## Ce que ça change pour vous
 
 1. **Rien dans l'immédiat** : la démonstration de Kioxia et Nvidia n'est pas un produit, et la puce d'Intel vise
    les centres de données.
-2. **Les SSD ne sont pas à l'abri** : si l'IA se met à consommer davantage de mémoire flash, leurs prix pourraient
-   rester élevés. Si vous en avez besoin, notre [guide pour choisir son SSD](/blog/choisir-son-ssd-pour-jouer/)
+2. **Les SSD restent à surveiller** : TrendForce prévoit désormais une baisse de leurs prix en 2027, mais si l'IA
+   se met à consommer beaucoup plus de mémoire flash, cette détente pourrait être freinée. Si vous en avez besoin, notre [guide pour choisir son SSD](/blog/choisir-son-ssd-pour-jouer/)
    vous aide à ne pas payer pour des performances inutiles.
 3. **Une tendance à suivre** : la mémoire est devenue le principal goulot d'étranglement de l'IA, et chaque
    alternative crédible à la HBM aura des effets sur tout le marché.
